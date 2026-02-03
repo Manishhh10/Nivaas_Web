@@ -8,6 +8,16 @@ import { useState, useEffect } from "react"
 import { login, verify } from "@/lib/api/auth"
 import Cookies from "js-cookie"
 
+const getRoleFromToken = (token: string | undefined) => {
+  if (!token) return null
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]))
+    return payload?.role || null
+  } catch {
+    return null
+  }
+}
+
 export default function LoginPage({
   onSuccess,
   onNavigateRegister,
@@ -22,11 +32,16 @@ export default function LoginPage({
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        await verify()
+        const res = await verify()
+        const role = res?.user?.role
         if (onSuccess) {
           onSuccess()
         } else {
-          router.push("/")
+          if (role === "admin") {
+            router.push("/admin")
+          } else {
+            router.push("/")
+          }
         }
       } catch (error) {
         // User is not logged in, stay on login page
@@ -56,10 +71,15 @@ export default function LoginPage({
           secure: process.env.NODE_ENV === 'production',
           sameSite: 'strict',
         })
+        const role = getRoleFromToken(result.data.token)
         if (onSuccess) {
           onSuccess()
         } else {
-          router.push("/")
+          if (role === "admin") {
+            router.push("/admin")
+          } else {
+            router.push("/")
+          }
         }
       } else {
         setError(result.message || "Login failed")
