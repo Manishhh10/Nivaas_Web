@@ -2,8 +2,17 @@
 
 import Link from "next/link"
 import Image from "next/image"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { handleLogout } from "@/lib/actions/auth-action"
+import { verify } from "@/lib/api/auth"
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000"
+
+const getImageUrl = (imagePath?: string) => {
+  if (!imagePath) return ""
+  if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) return imagePath
+  return `${API_BASE_URL}${imagePath.startsWith("/") ? "" : "/"}${imagePath}`
+}
 
 interface NavbarProps {
   onNavigate?: (page: any) => void
@@ -12,6 +21,21 @@ interface NavbarProps {
 
 export function Navbar({ onNavigate, isLoggedIn: initialIsLoggedIn = false }: NavbarProps) {
   const [isLoggedIn, setIsLoggedIn] = useState(initialIsLoggedIn)
+  const [user, setUser] = useState<any>(null)
+
+  useEffect(() => {
+    const loadUser = async () => {
+      try {
+        const res = await verify()
+        setUser(res.user)
+        setIsLoggedIn(true)
+      } catch (error) {
+        setUser(null)
+      }
+    }
+
+    loadUser()
+  }, [])
 
   const handleLogoutClick = async () => {
     try {
@@ -64,7 +88,9 @@ export function Navbar({ onNavigate, isLoggedIn: initialIsLoggedIn = false }: Na
             </>
           ) : (
             <div className="flex items-center gap-3">
-              <span className="hidden sm:block text-sm font-medium text-zinc-600">Nanda Lal</span>
+              <span className="hidden sm:block text-sm font-medium text-zinc-600">
+                {user?.name || "User"}
+              </span>
             </div>
           )}
 
@@ -86,21 +112,29 @@ export function Navbar({ onNavigate, isLoggedIn: initialIsLoggedIn = false }: Na
                 <line x1="4" x2="20" y1="6" y2="6" />
                 <line x1="4" x2="20" y1="18" y2="18" />
               </svg>
-              <div className="size-8 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-500">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-                  <circle cx="12" cy="7" r="4" />
-                </svg>
+              <div className="size-8 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-500 overflow-hidden">
+                {user?.image ? (
+                  <img
+                    src={getImageUrl(user.image)}
+                    alt={user?.name || "Profile"}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
+                )}
               </div>
             </button>
 
@@ -112,7 +146,7 @@ export function Navbar({ onNavigate, isLoggedIn: initialIsLoggedIn = false }: Na
               >
                 Dashboard
               </button>
-              <Link href="/" className="block rounded-lg px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-50">
+              <Link href="/user/profile" className="block rounded-lg px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-50">
                 Profile
               </Link>
               <Link href="/" className="block rounded-lg px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-50">
