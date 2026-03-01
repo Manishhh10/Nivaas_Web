@@ -11,6 +11,13 @@ export const metadata: Metadata = {
   title: "Nivaas - Host Place or Experience in Nepal",
   description: "Login, Sign up, or Start hosting on Nivaas",
   generator: "Next.js",
+  manifest: "/manifest.webmanifest",
+  applicationName: "Nivaas",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Nivaas",
+  },
   icons: {
     icon: [
       {
@@ -19,6 +26,7 @@ export const metadata: Metadata = {
       },
     ],
     apple: "/images/logo.png",
+    shortcut: "/images/logo.png",
   },
 }
 
