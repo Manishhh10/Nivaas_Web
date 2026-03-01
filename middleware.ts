@@ -7,13 +7,11 @@ export function middleware(request: NextRequest) {
   
   const { pathname } = request.nextUrl;
 
-  // Admin routes protection
   if (pathname.startsWith('/admin')) {
     if (!token) {
       return NextResponse.redirect(new URL('/auth/login', request.url));
     }
 
-    // Decode token to check role (simple base64 decode for JWT payload)
     try {
       const payload = JSON.parse(
         Buffer.from(token.split('.')[1], 'base64').toString()
@@ -27,7 +25,6 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  // User routes protection (both admin and user can access)
   if (pathname.startsWith('/user')) {
     if (!token) {
       return NextResponse.redirect(new URL('/auth/login', request.url));
