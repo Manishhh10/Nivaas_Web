@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
 import { Label } from '@/app/components/ui/label';
@@ -19,7 +18,6 @@ const getImageUrl = (imagePath?: string) => {
 };
 
 export default function ProfilePage() {
-  const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -47,13 +45,13 @@ export default function ProfilePage() {
         });
       } catch (err: any) {
         setError(err.message);
-        router.push('/auth/login');
+        if (typeof window !== 'undefined') window.location.href = '/';
       } finally {
         setLoading(false);
       }
     };
     fetchUser();
-  }, [router]);
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -86,7 +84,11 @@ export default function ProfilePage() {
         setUser(result.user);
         setFormData(prev => ({ ...prev, password: '' }));
       }
-      setSuccess('Profile updated successfully!');
+      if (result?.imageError) {
+        setSuccess('Profile updated, but image upload failed: ' + result.imageError);
+      } else {
+        setSuccess('Profile updated successfully!');
+      }
       setImageFile(null);
     } catch (err: any) {
       setError(err.message);
