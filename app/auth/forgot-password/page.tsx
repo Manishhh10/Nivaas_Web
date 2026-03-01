@@ -3,6 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
 import { forgotPassword, resetPassword } from "@/lib/api/auth"
 
 export default function ForgotPasswordPage() {
@@ -49,7 +50,19 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-zinc-50 px-4 py-12">
+    <div className="relative flex min-h-screen flex-col items-center justify-center bg-zinc-50 px-4 py-12">
+      <div className="pointer-events-none absolute right-6 top-6 hidden lg:block">
+        <div className="relative h-44 w-72 overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-lg">
+          <Image
+            src="/images/attachments-gen-images-public-mountain-view-terrace.jpg"
+            alt="Mountain view"
+            fill
+            priority
+            className="object-cover"
+          />
+        </div>
+      </div>
+
       <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-sm border border-zinc-100">
         <div className="mb-8 text-center">
           <Link href="/" className="inline-flex items-center gap-2 mb-4">
