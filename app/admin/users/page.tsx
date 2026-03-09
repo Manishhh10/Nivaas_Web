@@ -5,6 +5,14 @@ import Link from 'next/link';
 import { Button } from '@/app/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/app/components/ui/table';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/app/components/ui/pagination';
 import { getAllUsers, deleteUser } from '@/lib/api/admin';
 import { Plus, UserCircle, Search, MoreVertical, Trash2, Eye, Edit, Users } from 'lucide-react';
 
@@ -13,15 +21,24 @@ export default function AdminUsersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalUsers, setTotalUsers] = useState(0);
+  const limit = 5;
 
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    fetchUsers(page);
+  }, [page]);
 
-  const fetchUsers = async () => {
+  const fetchUsers = async (currentPage: number) => {
+    setLoading(true);
     try {
-      const response = await getAllUsers();
+      const response = await getAllUsers({ page: currentPage, limit });
       setUsers(response.users);
+      if (response.pagination) {
+        setTotalPages(response.pagination.totalPages || 1);
+        setTotalUsers(response.pagination.total || 0);
+      }
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -34,7 +51,7 @@ export default function AdminUsersPage() {
 
     try {
       await deleteUser(id);
-      setUsers(users.filter(user => user._id !== id));
+      await fetchUsers(page);
     } catch (err: any) {
       alert(err.message);
     }
@@ -49,6 +66,22 @@ export default function AdminUsersPage() {
         .some((value: string) => value.toLowerCase().includes(query))
     );
   }, [users, searchQuery]);
+
+  const pageNumbers = useMemo(() => {
+    const maxButtons = 5;
+    if (totalPages <= maxButtons) {
+      return Array.from({ length: totalPages }, (_, idx) => idx + 1);
+    }
+
+    let start = Math.max(1, page - 2);
+    let end = Math.min(totalPages, start + maxButtons - 1);
+
+    if (end - start < maxButtons - 1) {
+      start = Math.max(1, end - maxButtons + 1);
+    }
+
+    return Array.from({ length: end - start + 1 }, (_, idx) => start + idx);
+  }, [page, totalPages]);
 
   if (loading) {
     return (
@@ -89,7 +122,7 @@ export default function AdminUsersPage() {
               <div>
                 <CardTitle className="text-xl font-bold text-zinc-800">User Directory</CardTitle>
                 <CardDescription className="text-zinc-400">
-                  Showing {filteredUsers.length} of {users.length} users
+                  Showing {filteredUsers.length} of {totalUsers || users.length} users
                 </CardDescription>
               </div>
               <div className="relative group">
@@ -195,6 +228,52 @@ export default function AdminUsersPage() {
                 </div>
                 <p className="text-lg font-medium">No users found</p>
                 <p className="text-sm">Start by creating a new account.</p>
+              </div>
+            )}
+
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between px-6 py-4 border-t border-zinc-50">
+                <p className="text-xs text-zinc-400">
+                  Page {page} of {totalPages}
+                </p>
+                <Pagination className="justify-end">
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setPage((prev) => Math.max(1, prev - 1));
+                        }}
+                      />
+                    </PaginationItem>
+
+                    {pageNumbers.map((pageNumber) => (
+                      <PaginationItem key={pageNumber}>
+                        <PaginationLink
+                          href="#"
+                          isActive={pageNumber === page}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setPage(pageNumber);
+                          }}
+                        >
+                          {pageNumber}
+                        </PaginationLink>
+                      </PaginationItem>
+                    ))}
+
+                    <PaginationItem>
+                      <PaginationNext
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setPage((prev) => Math.min(totalPages, prev + 1));
+                        }}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
               </div>
             )}
           </CardContent>
