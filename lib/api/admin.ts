@@ -16,10 +16,11 @@ const getAuthToken = () => {
 };
 
 // Get all users (Admin only)
-export const getAllUsers = async () => {
+export const getAllUsers = async (params?: { page?: number; limit?: number }) => {
     try {
         const token = getAuthToken();
         const response = await axios.get(API.ADMIN.USERS, {
+            params,
             headers: {
                 Authorization: `Bearer ${token}`,
             },
