@@ -125,6 +125,11 @@ export default function LoginPage({
               placeholder="••••••••"
               className="w-full rounded-xl border border-zinc-200 px-4 py-3 focus:border-[#FF5A1F] focus:outline-none focus:ring-1 focus:ring-[#FF5A1F] transition-all"
             />
+            <div className="mt-2 text-right">
+              <Link href="/auth/forgot-password" className="text-xs font-semibold text-[#FF5A1F] hover:underline">
+                Forgot password?
+              </Link>
+            </div>
           </div>
 
           {error && (
